@@ -25,7 +25,7 @@ public class Server
     {
         try
         {
-            System.out.println("Server is starting!");
+            System.out.println("Server is started!");
             server = new ServerSocket(port);
 
             while (true)
@@ -35,7 +35,7 @@ public class Server
                 connections.add(c);
                 c.run();
 
-                System.out.printf("Client connected: %s, clients connected: %s", s, connections.connections());
+                System.out.printf("Client connected: %s, clients connected: %s%n", s, connections.connections());
             }
         }
         catch (IOException e)
