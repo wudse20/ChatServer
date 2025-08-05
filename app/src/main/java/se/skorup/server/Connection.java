@@ -1,72 +1,48 @@
 package se.skorup.server;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.net.Socket;
+import org.java_websocket.WebSocket;
 
 public class Connection
 {
-    private final Server server;
-    private final Socket connection;
+    private final WebSocket socket;
+    private String username;
 
-    private DataInputStream in;
-
-    public Connection(Server server, Socket connection)
+    public Connection(WebSocket socket)
     {
-        this.server = server;
-        this.connection =  connection;
+        this.socket = socket;
     }
 
-    public void run()
+    public WebSocket getSocket()
     {
-        new Thread(() -> {
-            try
-            {
-                in = new DataInputStream(new BufferedInputStream(connection.getInputStream()));
-                var line = "";
+        return socket;
+    }
 
-                while (!line.equals(ServerConstants.DISCONNECT))
-                {
-                    line = in.readUTF();
-                    System.out.printf("%s: %s%n", connection, line);
-                }
-            }
-            catch (IOException e)
-            {
-                System.err.printf("Got message: %s%n", e.getLocalizedMessage());
-            }
-            finally
-            {
-                try
-                {
-                    if (in != null)
-                        in.close();
-                }
-                catch (IOException e)
-                {
-                    System.err.printf("Got message: %s%n", e.getLocalizedMessage());
-                }
-            }
-        }, connection.toString());
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public void setUsername(String username)
+    {
+        this.username = username;
     }
 
     @Override
     public int hashCode()
     {
-        return connection.hashCode();
+        return socket.hashCode();
     }
 
     @Override
     public boolean equals(Object o)
     {
         return o instanceof Connection c &&
-               c.connection.equals(connection);
+                c.socket.equals(socket);
     }
 
     @Override
     public String toString()
     {
-        return connection.toString();
+        return username != null ? username : socket.getRemoteSocketAddress().toString();
     }
 }

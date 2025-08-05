@@ -7,7 +7,11 @@ function login() {
     const socket = new WebSocket(`ws://${ip}:${port}`);
 
     socket.addEventListener('open', (event) => {
-        socket.send("LOGIN(anton)");
+        socket.send(`LOGIN(${username})`);
         console.log('Connected to the server');
+    });
+
+    socket.addEventListener('message', (event) => {
+        console.log("Message from server:", event.data);
     });
 }

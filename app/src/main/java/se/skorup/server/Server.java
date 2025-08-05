@@ -1,60 +1,67 @@
 package se.skorup.server;
 
-import java.io.IOException;
-import java.net.ServerSocket;
+import org.java_websocket.server.WebSocketServer;
+import org.java_websocket.WebSocket;
+import org.java_websocket.handshake.ClientHandshake;
 
-public class Server
+import java.net.InetSocketAddress;
+
+public class Server extends WebSocketServer
 {
-    private final int port;
-    private final Connections connections;
-
-    private ServerSocket server;
+    private final Connections connections = new Connections();
 
     public Server(int port)
     {
-        this.port = port;
-        this.connections = new Connections();
+        super(new InetSocketAddress(port));
     }
 
-    public void removeConnection(Connection c)
+    @Override
+    public void onOpen(WebSocket conn, ClientHandshake handshake)
     {
+        var c = new Connection(conn);
+        connections.add(c);
+        System.out.printf("Client connected: %s, clients connected: %d%n", c, connections.size());
+    }
+
+    @Override
+    public void onMessage(WebSocket conn, String message)
+    {
+        var c = connections.getBySocket(conn);
+
+        if (message.startsWith("LOGIN(") && message.endsWith(")"))
+        {
+            var username = message.substring(6, message.length() - 1);
+            c.setUsername(username);
+            System.out.printf("User logged in: %s%n", username);
+            return;
+        }
+
+        System.out.printf("%s: %s%n", c, message);
+
+        if ("DISCONNECT".equalsIgnoreCase(message))
+        {
+            conn.close();
+        }
+    }
+
+    @Override
+    public void onClose(WebSocket conn, int code, String reason, boolean remote)
+    {
+        var c = connections.getBySocket(conn);
         connections.remove(c);
+        System.out.printf("Client disconnected: %s, clients connected: %d%n", c, connections.size());
     }
 
-    public void run()
+    @Override
+    public void onError(WebSocket conn, Exception ex)
     {
-        try
-        {
-            System.out.println("Server is started!");
-            server = new ServerSocket(port);
+        System.err.printf("Error from %s: %s%n",
+                conn != null ? conn.getRemoteSocketAddress() : "Unknown", ex.getMessage());
+    }
 
-            while (true)
-            {
-                var s = server.accept();
-                var c = new Connection(this, s);
-                connections.add(c);
-                c.run();
-
-                System.out.printf("Client connected: %s, clients connected: %s%n", s, connections.connections());
-            }
-        }
-        catch (IOException e)
-        {
-            System.err.printf("Got error: %s%n", e.getLocalizedMessage());
-        }
-        finally
-        {
-            if (server != null)
-            {
-                try
-                {
-                    server.close();
-                }
-                catch (IOException e)
-                {
-                    System.err.printf("Got error: %s%n", e.getLocalizedMessage());
-                }
-            }
-        }
+    @Override
+    public void onStart()
+    {
+        System.out.println("WebSocket server started!");
     }
 }

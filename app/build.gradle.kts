@@ -21,6 +21,9 @@ dependencies {
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    implementation("org.java-websocket:Java-WebSocket:1.5.3")
+    implementation("org.slf4j:slf4j-nop:2.0.9") // or latest version
+
     // This dependency is used by the application.
     implementation(libs.guava)
 }
