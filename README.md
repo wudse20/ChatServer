@@ -1,4 +1,4 @@
-# ChatServerTest
+# ChatServer
 A simple chat server.
 
 ## Running the client
