@@ -45,6 +45,14 @@ function App() {
                 setMessages(
                     prev => prev !== '' ? `${prev}\n${content} logged in!` : `${content} logged in!`
                 );
+                return;
+            }
+
+            if (msg.startsWith("DISCONNECT")) {
+                const content = msg.slice("DISCONNECT(".length, msg.length - 1);
+                setMessages(
+                    prev => prev !== '' ? `${prev}\n${content} logged out!` : `${content} logged out!`
+                );
             }
         };
     }

@@ -60,6 +60,7 @@ public class Server extends WebSocketServer
         var c = connections.getBySocket(conn);
         connections.remove(c);
         System.out.printf("Client disconnected: %s, clients connected: %d%n", c, connections.size());
+        connections.broadcastMessage("DISCONNECT(%s)".formatted(c.getUsername()));
     }
 
     @Override
