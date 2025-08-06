@@ -36,4 +36,11 @@ public class Connections
                 .findFirst()
                 .orElse(null);
     }
+
+    public void broadcastMessage(String msg)
+    {
+        for (var connection : connections) {
+            connection.addMessage(msg);
+        }
+    }
 }

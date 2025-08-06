@@ -32,7 +32,15 @@ public class Server extends WebSocketServer
         {
             var username = message.substring(6, message.length() - 1);
             c.setUsername(username);
+            c.start();
             System.out.printf("User logged in: %s%n", username);
+            return;
+        }
+
+        if (message.startsWith("MESSAGE(") && message.endsWith(")"))
+        {
+            connections.broadcastMessage(message);
+            System.out.printf("Broadcasted message: %s%n", message);
             return;
         }
 

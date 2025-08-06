@@ -1,6 +1,6 @@
-import {useState} from 'react'
-import './App.css'
-import './login.jsx'
+import {useState, useRef} from 'react';
+import './App.css';
+import './login.jsx';
 import Login from "./login.jsx";
 import Chat from "./Chat.jsx";
 
@@ -8,64 +8,51 @@ function App() {
     const [signedIn, setSignedIn] = useState(false);
     const [messages, setMessages] = useState("");
     const [username, setUsername] = useState("");
-    let socket = null;
+    const socketRef = useRef(null);
 
     function login(un, ip, port) {
-        socket = new WebSocket(`ws://${ip}:${port}`);
+        socketRef.current = new WebSocket(`ws://${ip}:${port}`);
 
-        socket.onopen = () => {
-            socket.send(`LOGIN(${un})`);
+        socketRef.current.onopen = () => {
+            socketRef.current.send(`LOGIN(${un})`);
             console.log("Connected to the server!");
             setSignedIn(true);
             setUsername(un);
-        }
+        };
 
-        socket.onerror = (e) => {
+        socketRef.current.onerror = (e) => {
             console.error(e);
             setSignedIn(false);
-        }
+        };
 
-        socket.onmessage = (e) => {
+        socketRef.current.onmessage = (e) => {
             const msg = e.data;
 
-            if (msg.indexOf("MESSAGE") === -1) {
-                return;
-            }
+            if (!msg.startsWith("MESSAGE")) return;
 
-            let un = "";
-            let sent = "";
-            let i = "MESSAGE".length;
-            for (; i < msg.length; i++) {
-                if (msg[i] !== ',') {
-                    un += msg[i];
-                }
+            const content = msg.slice("MESSAGE(".length, msg.length - 1);
+            const separatorIndex = content.indexOf(',');
+            const sender = content.slice(0, separatorIndex).trim();
+            const messageText = content.slice(separatorIndex + 1).trim();
 
-                break;
-            }
-
-            for (; i < msg.length; i++) {
-                if (msg[i] !== ')') {
-                    sent += msg[i];
-                }
-
-                break;
-            }
-
-            setMessages(msg => `${msg}\n${un.trim()}: ${sent.trim()}`);
-        }
+            setMessages(prev => `${prev}\n${sender}: ${messageText}`);
+        };
     }
 
     function sendMessage(message) {
-        if (signedIn) {
-            socket.send(`MESSAGE(${username}, ${message})`);
+        if (signedIn && socketRef.current) {
+            socketRef.current.send(`MESSAGE(${username}, ${message})`);
         }
     }
 
     return (
         <>
-            {signedIn ? <Chat sendMessage={sendMessage} messages={messages} /> : (<Login login={login} />)}
+            {signedIn
+                ? <Chat sendMessage={sendMessage} messages={messages}/>
+                : <Login login={login}/>
+            }
         </>
-    )
+    );
 }
 
-export default App
+export default App;

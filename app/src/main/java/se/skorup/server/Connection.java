@@ -2,10 +2,14 @@ package se.skorup.server;
 
 import org.java_websocket.WebSocket;
 
-public class Connection
+import java.util.ArrayDeque;
+import java.util.Queue;
+
+public class Connection extends Thread
 {
     private final WebSocket socket;
     private String username;
+    private final Queue<String> message = new ArrayDeque<>();
 
     public Connection(WebSocket socket)
     {
@@ -25,6 +29,37 @@ public class Connection
     public void setUsername(String username)
     {
         this.username = username;
+    }
+
+    public synchronized void addMessage(String msg)
+    {
+        message.offer(msg);
+        notifyAll();
+    }
+
+    private synchronized String getMessage() throws InterruptedException
+    {
+        while (message.isEmpty())
+            wait();
+
+        return message.poll();
+    }
+
+    @Override
+    public void run()
+    {
+        try
+        {
+            while (socket.isOpen())
+            {
+                var msg = getMessage();
+                socket.send(msg);
+            }
+        }
+        catch (InterruptedException unexpected)
+        {
+            throw new RuntimeException(unexpected);
+        }
     }
 
     @Override
