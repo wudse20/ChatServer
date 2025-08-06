@@ -39,8 +39,7 @@ public class Connections
 
     public void broadcastMessage(String msg)
     {
-        for (var connection : connections) {
+        for (var connection : connections)
             connection.addMessage(msg);
-        }
     }
 }

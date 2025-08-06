@@ -28,14 +28,24 @@ function App() {
         socketRef.current.onmessage = (e) => {
             const msg = e.data;
 
-            if (!msg.startsWith("MESSAGE")) return;
+            if (msg.startsWith("MESSAGE")) {
+                const content = msg.slice("MESSAGE(".length, msg.length - 1);
+                const separatorIndex = content.indexOf(',');
+                const sender = content.slice(0, separatorIndex).trim();
+                const messageText = content.slice(separatorIndex + 1).trim();
 
-            const content = msg.slice("MESSAGE(".length, msg.length - 1);
-            const separatorIndex = content.indexOf(',');
-            const sender = content.slice(0, separatorIndex).trim();
-            const messageText = content.slice(separatorIndex + 1).trim();
+                setMessages(prev =>
+                    prev !== '' ? `${prev}\n${sender}: ${messageText}` : `${sender}: ${messageText}`
+                );
+                return;
+            }
 
-            setMessages(prev => `${prev}\n${sender}: ${messageText}`);
+            if (msg.startsWith("LOGIN")) {
+                const content = msg.slice("LOGIN(".length, msg.length - 1);
+                setMessages(
+                    prev => prev !== '' ? `${prev}\n${content} logged in!` : `${content} logged in!`
+                );
+            }
         };
     }
 

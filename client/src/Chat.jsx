@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Chat({ sendMessage, messages }) {
     const [message, setMessage] = useState('');
+    const textareaRef = useRef(null);
 
     function handleSendMessage(event) {
         event.preventDefault();
@@ -15,10 +16,20 @@ export default function Chat({ sendMessage, messages }) {
         setMessage(event.target.value);
     }
 
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.scrollTo({
+                top: textareaRef.current.scrollHeight,
+                behavior: 'smooth',
+            });
+        }
+    }, [messages]);
+
     return (
         <div style={styles.wrapper}>
             <div style={styles.container}>
                 <textarea
+                    ref={textareaRef}
                     value={messages}
                     readOnly
                     style={styles.textarea}
@@ -65,7 +76,9 @@ const styles = {
         padding: '1rem',
         marginBottom: '2rem',
         boxSizing: 'border-box',
-        overflow: 'hidden',
+        overflowY: 'auto',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
     },
     form: {
         display: 'flex',

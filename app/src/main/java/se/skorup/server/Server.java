@@ -34,6 +34,8 @@ public class Server extends WebSocketServer
             c.setUsername(username);
             c.start();
             System.out.printf("User logged in: %s%n", username);
+            connections.broadcastMessage(message);
+            System.out.printf("Broadcasted message: %s%n", message);
             return;
         }
 
