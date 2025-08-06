@@ -1,5 +1,7 @@
 package se.skorup.server;
 
+import org.java_websocket.WebSocket;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,22 +26,24 @@ public class Connections
         return connections.size();
     }
 
-    public Set<Connection> getAll()
+    public Connection getBySocket(WebSocket socket)
     {
-        return Set.copyOf(connections);
-    }
+        synchronized (connections)
+        {
+            return connections.stream()
+                              .filter(c -> c.getSocket().equals(socket))
+                              .findFirst()
+                              .orElse(null);
 
-    public Connection getBySocket(Object socket)
-    {
-        return connections.stream()
-                .filter(c -> c.getSocket().equals(socket))
-                .findFirst()
-                .orElse(null);
+        }
     }
 
     public void broadcastMessage(String msg)
     {
-        for (var connection : connections)
-            connection.addMessage(msg);
+        synchronized (connections)
+        {
+            for (var connection : connections)
+                connection.addMessage(msg);
+        }
     }
 }
