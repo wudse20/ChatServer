@@ -8,6 +8,7 @@ function App() {
     const [signedIn, setSignedIn] = useState(false);
     const [messages, setMessages] = useState("");
     const [username, setUsername] = useState("");
+    const [error, setError] = useState("");
     const socketRef = useRef(null);
 
     function login(un, ip, port) {
@@ -18,11 +19,26 @@ function App() {
             console.log("Connected to the server!");
             setSignedIn(true);
             setUsername(un);
+            setError("");
         };
 
         socketRef.current.onerror = (e) => {
             console.error(e);
             setSignedIn(false);
+            setError("Connection error: Unable to reach server.");
+        };
+
+        socketRef.current.onclose = (event) => {
+            if (!signedIn) {
+                let reason = "Connection closed unexpectedly.";
+                if (event.code === 1006) {
+                    reason = "Server unreachable or connection refused.";
+                } else if (event.code === 1001) {
+                    reason = "Server closed the connection.";
+                }
+                setError(`WebSocket closed: ${reason}`);
+                console.warn("WebSocket closed:", event);
+            }
         };
 
         socketRef.current.onmessage = (e) => {
@@ -67,7 +83,7 @@ function App() {
         <>
             {signedIn
                 ? <Chat sendMessage={sendMessage} messages={messages}/>
-                : <Login login={login}/>
+                : <Login login={login} error={error} s/>
             }
         </>
     );
